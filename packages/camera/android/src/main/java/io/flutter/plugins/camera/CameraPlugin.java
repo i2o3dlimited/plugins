@@ -242,6 +242,16 @@ public class CameraPlugin implements MethodCallHandler {
           }
           break;
         }
+      case "setFlash":
+        {
+          try {
+            camera.startPreview((Boolean) call.argument("value"));
+            result.success(null);
+          } catch (CameraAccessException e) {
+            result.error("CameraAccess", e.getMessage(), null);
+          }
+        }
+        break;
       case "dispose":
         {
           if (camera != null) {
@@ -611,6 +621,7 @@ public class CameraPlugin implements MethodCallHandler {
             cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
         captureBuilder.addTarget(pictureImageReader.getSurface());
         captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getMediaOrientation());
+        captureBuilder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_TORCH);
 
         cameraCaptureSession.capture(
             captureBuilder.build(),
@@ -725,11 +736,16 @@ public class CameraPlugin implements MethodCallHandler {
     }
 
     private void startPreview() throws CameraAccessException {
+      startPreview(false);
+    }
+
+    private void startPreview(boolean torch) throws CameraAccessException {
       closeCaptureSession();
 
       SurfaceTexture surfaceTexture = textureEntry.surfaceTexture();
       surfaceTexture.setDefaultBufferSize(previewSize.getWidth(), previewSize.getHeight());
       captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+      captureRequestBuilder.set(CaptureRequest.FLASH_MODE, torch? CaptureRequest.FLASH_MODE_TORCH : CaptureRequest.FLASH_MODE_OFF);
 
       List<Surface> surfaces = new ArrayList<>();
 

@@ -134,10 +134,10 @@ class CameraValue {
 
   const CameraValue.uninitialized()
       : this(
-            isInitialized: false,
-            isRecordingVideo: false,
-            isTakingPicture: false,
-            isStreamingImages: false);
+      isInitialized: false,
+      isRecordingVideo: false,
+      isTakingPicture: false,
+      isStreamingImages: false);
 
   /// True after [CameraController.initialize] has completed successfully.
   final bool isInitialized;
@@ -225,7 +225,7 @@ class CameraController extends ValueNotifier<CameraValue> {
     try {
       _creatingCompleter = Completer<void>();
       final Map<String, dynamic> reply =
-          await _channel.invokeMapMethod<String, dynamic>(
+      await _channel.invokeMapMethod<String, dynamic>(
         'initialize',
         <String, dynamic>{
           'cameraName': description.name,
@@ -282,6 +282,18 @@ class CameraController extends ValueNotifier<CameraValue> {
       case 'cameraClosing':
         value = value.copyWith(isRecordingVideo: false);
         break;
+    }
+  }
+
+  /// Sets the flash
+  Future<void> setFlash(bool value) async {
+    try {
+      await _channel.invokeMethod<void>(
+        'setFlash',
+        <String, dynamic>{'value': value},
+      );
+    } on PlatformException catch (e) {
+      throw CameraException(e.code, e.message);
     }
   }
 
@@ -360,13 +372,13 @@ class CameraController extends ValueNotifier<CameraValue> {
       throw CameraException(e.code, e.message);
     }
     const EventChannel cameraEventChannel =
-        EventChannel('plugins.flutter.io/camera/imageStream');
+    EventChannel('plugins.flutter.io/camera/imageStream');
     _imageStreamSubscription =
         cameraEventChannel.receiveBroadcastStream().listen(
-      (dynamic imageData) {
-        onAvailable(CameraImage._fromPlatformData(imageData));
-      },
-    );
+              (dynamic imageData) {
+            onAvailable(CameraImage._fromPlatformData(imageData));
+          },
+        );
   }
 
   /// Stop streaming images from platform camera.
